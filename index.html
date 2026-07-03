@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IPzonexFlix</title>
+  <title>IPzonexHub</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,6 +49,15 @@
       color: var(--accent); letter-spacing: -1px; text-decoration: none;
       white-space: nowrap;
     }
+    .logo-2 {
+  --kx: #f5a623; /* Mendeklarasikan variabel warna baru */
+  font-size: 1.5rem; 
+  font-weight: 900;
+  color: var(--kx); /* Mengubah dari var(--accent) menjadi var(--kx) */
+  letter-spacing: -1px; 
+  text-decoration: none;
+  white-space: nowrap;
+}
     .source-filters { display: flex; gap: 6px; flex-wrap: wrap; }
     .pill {
       display: inline-flex; align-items: center; gap: 4px;
@@ -312,7 +321,7 @@
 
   <!-- NAVBAR -->
   <nav>
-    <a href="#" class="logo">IPzonexFlix</a>
+    <a href="#" class="logo">IPzonex</a><a href="#" class="logo-2">Hub</a>
 
     <div class="source-filters">
       <div class="pill on" data-src="youtube"     onclick="toggleSrc(this)">YouTube</div>
@@ -376,7 +385,7 @@
   <!-- SECTIONS -->
   <div class="sections" id="sections"></div>
 
-  <footer>IPzonexFlix — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org</footer>
+  <footer>IPzonexHub — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org</footer>
 
   <!-- FILM MODAL (untuk situs streaming) -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -720,7 +729,7 @@
   document.getElementById('sections').innerHTML = `
     <div style="padding:60px 0;text-align:center;color:var(--muted)">
       <span class="material-icons-round" style="font-size:3.5rem;display:block;margin-bottom:16px">movie</span>
-      <div style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:8px">Selamat datang di IPzonexFlix</div>
+      <div style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:8px">Selamat datang di IPzonexHub</div>
       <div style="font-size:0.9rem">Ketik judul film atau video di kolom pencarian, lalu tekan <strong style="color:var(--accent)">Cari</strong></div>
     </div>`;
 
