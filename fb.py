@@ -401,6 +401,133 @@ def scrape_lk21(query):
 
 
 # ══════════════════════════════════════════════════════════════
+#  7. ARCHIVE.ORG  (Internet Archive — film public domain gratis)
+# ══════════════════════════════════════════════════════════════
+def scrape_archive(query):
+    """
+    Scrape Internet Archive via Search API.
+    Hanya ambil mediatype:movies yang bisa di-embed langsung.
+    """
+    results = []
+    try:
+        api = (
+            "https://archive.org/advancedsearch.php"
+            f"?q=mediatype:movies+title:({requests.utils.quote(query)})"
+            "&fl=identifier,title,description,year,subject,downloads"
+            "&rows=20&output=json&sort=downloads+desc"
+        )
+        data = get(api).json()
+        docs = data.get('response', {}).get('docs', [])
+
+        for doc in docs:
+            iid   = doc.get('identifier', '')
+            title = doc.get('title', '')
+            if not iid or not title:
+                continue
+
+            year  = str(doc.get('year', ''))[:4]
+            desc  = doc.get('description', '')
+            if isinstance(desc, list):
+                desc = desc[0] if desc else ''
+            subject = doc.get('subject', '')
+            if isinstance(subject, list):
+                subject = ', '.join(subject[:3])
+
+            thumbnail = f'https://archive.org/services/img/{iid}'
+            page_url  = f'https://archive.org/details/{iid}'
+            embed_url = f'https://archive.org/embed/{iid}?autoplay=1'
+
+            results.append({
+                'id':        iid,
+                'title':     title,
+                'thumbnail': thumbnail,
+                'duration':  '',
+                'source':    'archive',
+                'type':      'video',
+                'embed_url': embed_url,
+                'page_url':  page_url,
+                'rating':    '',
+                'genre':     subject[:40] if subject else 'Public Domain',
+                'year':      year,
+            })
+
+    except Exception as e:
+        print(f"[Archive.org] {e}")
+    return results
+
+
+# ══════════════════════════════════════════════════════════════
+#  8. PLEX  (Plex Free Movies — pakai embed player publik)
+# ══════════════════════════════════════════════════════════════
+def scrape_plex(query):
+    """
+    Plex menyediakan film gratis tanpa login via app.plex.tv.
+    Gunakan Plex metadata API publik untuk search.
+    Embed via player.plex.tv yang bisa diakses tanpa akun.
+    """
+    results = []
+    try:
+        # Plex Search API publik (metadata provider)
+        api = (
+            "https://metadata.provider.plex.tv/library/search"
+            f"?query={requests.utils.quote(query)}"
+            "&limit=20&searchTypes=movie,show"
+        )
+        headers = {
+            "User-Agent": HEADERS["User-Agent"],
+            "Accept": "application/json",
+            "X-Plex-Client-Identifier": "streamflix-app",
+            "X-Plex-Language": "en",
+        }
+        r = requests.get(api, headers=headers, timeout=12)
+        data = r.json()
+
+        items = (
+            data.get('MediaContainer', {}).get('SearchResult', []) or
+            data.get('MediaContainer', {}).get('Metadata', [])
+        )
+
+        for item in items[:20]:
+            guid  = item.get('guid', '')
+            title = item.get('title', '')
+            if not title:
+                continue
+
+            year  = str(item.get('year', ''))
+            thumb = item.get('thumb', '') or item.get('art', '')
+            if thumb and thumb.startswith('/'):
+                thumb = 'https://metadata.provider.plex.tv' + thumb
+
+            # Extract plex ID from guid (plex://movie/5d776b...)
+            m = re.search(r'plex://[^/]+/([a-f0-9]+)', guid)
+            pid = m.group(1) if m else re.sub(r'[^a-z0-9]', '-', title.lower())[:30]
+
+            genre  = item.get('type', 'movie').capitalize()
+            rating = str(item.get('rating', '') or item.get('audienceRating', '') or '')
+
+            page_url  = f'https://watch.plex.tv/movie/{pid}'
+            embed_url = f'https://watch.plex.tv/movie/{pid}'
+
+            results.append({
+                'id':        pid,
+                'title':     title,
+                'thumbnail': thumb,
+                'duration':  '',
+                'source':    'plex',
+                'type':      'film',
+                'embed_url': embed_url,
+                'page_url':  page_url,
+                'rating':    rating[:5] if rating else '',
+                'genre':     genre,
+                'year':      year,
+            })
+
+    except Exception as e:
+        print(f"[Plex] {e}")
+    return results
+
+
+# ══════════════════════════════════════════════════════════════
 #  SCRAPER MAP
 # ══════════════════════════════════════════════════════════════
 SCRAPERS = {
@@ -410,6 +537,7 @@ SCRAPERS = {
     'klikxxi':     scrape_klikxxi,
     'rebahin':     scrape_rebahin,
     'lk21':        scrape_lk21,
+    'archive':     scrape_archive,
 }
 
 
