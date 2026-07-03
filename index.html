@@ -270,7 +270,16 @@
 
     /* ── AD BANNER ── */
     .ad-native {
-      padding: 16px 4% 0;
+      padding: 14px 4% 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .ad-banner-item {
+      width: 320px;
+      height: 50px;
+      overflow: hidden;
     }
   </style>
 
@@ -314,10 +323,16 @@
     <h1 id="nowTitle">—</h1>
   </div>
 
-  <!-- Native Banner Ad — di antara player dan daftar video -->
+  <!-- Banner 320x50 x2 — di bawah player, 2 baris -->
   <div class="ad-native">
-    <script async="async" data-cfasync="false" src="https://pl30188611.effectivecpmnetwork.com/50bca2b6d9f5d51a9a125da6c0ee553f/invoke.js"></script>
-    <div id="container-50bca2b6d9f5d51a9a125da6c0ee553f"></div>
+    <div class="ad-banner-item">
+      <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
+      <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
+    </div>
+    <div class="ad-banner-item">
+      <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
+      <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
+    </div>
   </div>
 
   <!-- SECTIONS -->
