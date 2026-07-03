@@ -24,6 +24,7 @@
       --kx:  #f5a623;
       --rb:  #00c853;
       --lk:  #aa00ff;
+      --ln:  #e67e22;
       --ar:  #428bca;
     }
 
@@ -62,6 +63,7 @@
     .pill[data-src="klikxxi"]     { border-color: var(--kx); color: var(--kx); }
     .pill[data-src="rebahin"]     { border-color: var(--rb); color: var(--rb); }
     .pill[data-src="lk21"]        { border-color: var(--lk); color: var(--lk); }
+    .pill[data-src="lainnya"]     { border-color: var(--ln); color: var(--ln); }
     .pill[data-src="archive"]     { border-color: var(--ar); color: var(--ar); }
     .pill[data-src="youtube"].on     { background: var(--yt); color:#fff; }
     .pill[data-src="dailymotion"].on { background: var(--dm); color:#fff; }
@@ -69,6 +71,7 @@
     .pill[data-src="klikxxi"].on     { background: var(--kx); color:#000; }
     .pill[data-src="rebahin"].on     { background: var(--rb); color:#000; }
     .pill[data-src="lk21"].on        { background: var(--lk); color:#fff; }
+    .pill[data-src="lainnya"].on     { background: var(--ln); color:#fff; }
     .pill[data-src="archive"].on     { background: var(--ar); color:#fff; }
 
     .search-bar { margin-left: auto; display: flex; gap: 7px; }
@@ -117,6 +120,7 @@
     .src-badge.klikxxi     { background: var(--kx); color:#000; }
     .src-badge.rebahin     { background: var(--rb); color:#000; }
     .src-badge.lk21        { background: var(--lk); color:#fff; }
+    .src-badge.lainnya     { background: var(--ln); color:#fff; }
     .src-badge.archive     { background: var(--ar); color:#fff; }
     .now-bar h1 { font-size: clamp(13px,2vw,21px); font-weight:700; flex:1; }
 
@@ -175,6 +179,7 @@
     .card-strip.klikxxi     { background: var(--kx); }
     .card-strip.rebahin     { background: var(--rb); }
     .card-strip.lk21        { background: var(--lk); }
+    .card-strip.lainnya     { background: var(--ln); }
     .card-strip.archive     { background: var(--ar); }
     .card-thumb {
       width: 100%; aspect-ratio: 16/9; object-fit: cover;
@@ -197,6 +202,7 @@
     .mini-badge.klikxxi     { background: rgba(245,166,35,.15); color: var(--kx); }
     .mini-badge.rebahin     { background: rgba(0,200,83,.15);   color: var(--rb); }
     .mini-badge.lk21        { background: rgba(170,0,255,.15);  color: var(--lk); }
+    .mini-badge.lainnya     { background: rgba(230,126,34,.15); color: var(--ln); }
     .mini-badge.archive     { background: rgba(66,139,202,.15); color: var(--ar); }
     .card-dur   { font-size: 10px; color: var(--muted); }
     .card-rating { font-size: 10px; color: #f5c518; }
@@ -315,6 +321,7 @@
       <div class="pill on" data-src="klikxxi"     onclick="toggleSrc(this)">KLIKXXI</div>
       <div class="pill on" data-src="rebahin"     onclick="toggleSrc(this)">REBAHIN</div>
       <div class="pill on" data-src="lk21"        onclick="toggleSrc(this)">LK21</div>
+      <div class="pill on" data-src="lainnya"     onclick="toggleSrc(this)">Lainnya</div>
       <div class="pill on" data-src="archive"     onclick="toggleSrc(this)">Archive.org</div>
     </div>
 
@@ -323,6 +330,14 @@
       <button onclick="doSearch()"><span class="material-icons-round" style="font-size:15px;vertical-align:middle">search</span> Cari</button>
     </div>
   </nav>
+
+  <!-- Banner 320x50 x1 — di bawah navbar, sebelum player -->
+  <div class="ad-native" style="padding:10px 4% 0">
+    <div class="ad-banner-item">
+      <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
+      <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
+    </div>
+  </div>
 
   <!-- HERO PLAYER -->
   <div class="hero" id="hero">
@@ -361,7 +376,7 @@
   <!-- SECTIONS -->
   <div class="sections" id="sections"></div>
 
-  <footer>IPzonexFlix — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Archive.org</footer>
+  <footer>IPzonexFlix — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org</footer>
 
   <!-- FILM MODAL (untuk situs streaming) -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -400,6 +415,7 @@
     klikxxi:     { label: 'KLIKXXI',     icon: 'movie',      color: '#f5a623', type: 'film'  },
     rebahin:     { label: 'REBAHIN',     icon: 'live_tv',    color: '#00c853', type: 'film'  },
     lk21:        { label: 'LK21',        icon: 'video_library', color: '#aa00ff', type: 'film' },
+    lainnya:     { label: 'Lainnya',     icon: 'theaters',      color: '#e67e22', type: 'film' },
     archive:     { label: 'Archive.org', icon: 'archive',       color: '#428bca', type: 'video' },
   };
 
@@ -407,7 +423,7 @@
   let allVideos    = [];
   let activeVideo  = null;
   let viewMode     = 'carousel';
-  let activeSrcs   = new Set(['youtube','dailymotion','vimeo','klikxxi','rebahin','lk21','archive']);
+  let activeSrcs   = new Set(['youtube','dailymotion','vimeo','klikxxi','rebahin','lk21','lainnya','archive']);
 
   // ─── TOGGLE SOURCE PILL ───────────────────────────────
   function toggleSrc(pill) {
@@ -459,7 +475,7 @@
     const wrap = document.getElementById('sections');
     wrap.innerHTML = '';
 
-    const order = ['youtube','dailymotion','vimeo','klikxxi','rebahin','lk21','archive'];
+    const order = ['youtube','dailymotion','vimeo','klikxxi','rebahin','lk21','lainnya','archive'];
     order.forEach(src => {
       if (!activeSrcs.has(src)) return;
       const items = allVideos.filter(v => v.source === src);

@@ -401,7 +401,107 @@ def scrape_lk21(query):
 
 
 # ══════════════════════════════════════════════════════════════
-#  7. ARCHIVE.ORG  (Internet Archive — film public domain gratis)
+#  7. LAINNYA  (vitavica.com + 168.144.38.21 + 167.99.71.6)
+#              Semua pakai WordPress/LK21 theme yang sama
+# ══════════════════════════════════════════════════════════════
+_LAINNYA_SITES = [
+    "https://vitavica.com",
+    "http://168.144.38.21",
+    "http://167.99.71.6",
+]
+
+def _scrape_wp_site(base, query, label):
+    """Scraper generik untuk situs WordPress bertema LK21."""
+    results = []
+    try:
+        url  = f"{base}/?s={requests.utils.quote(query)}"
+        soup = BeautifulSoup(get(url, timeout=15).text, 'html.parser')
+
+        cards = (
+            soup.select('article.item') or
+            soup.select('div.item') or
+            soup.select('article') or
+            soup.select('.ml-item')
+        )
+
+        # fallback ke homepage kalau search kosong
+        if not cards:
+            soup2 = BeautifulSoup(get(base, timeout=15).text, 'html.parser')
+            cards = (
+                soup2.select('article.item') or
+                soup2.select('div.item') or
+                soup2.select('article')
+            )
+
+        for card in cards[:25]:
+            title_el = card.select_one('h2, h3, .Title, .title, a')
+            title    = title_el.get_text(strip=True) if title_el else ''
+            if not title or len(title) < 2:
+                continue
+
+            link_el  = card.select_one('a[href]')
+            page_url = link_el['href'] if link_el else base
+            if page_url.startswith('/'):
+                page_url = base + page_url
+
+            img_el    = card.select_one('img')
+            thumbnail = ''
+            if img_el:
+                thumbnail = (img_el.get('data-lazy-src') or
+                             img_el.get('data-src') or
+                             img_el.get('src') or '')
+
+            rating_el = card.select_one('.rating, .score, .imdb, .Qlty')
+            rating    = rating_el.get_text(strip=True) if rating_el else ''
+
+            genre_el  = card.select_one('.genres a, .category a, .genre')
+            genre     = genre_el.get_text(strip=True) if genre_el else ''
+
+            year_el   = card.select_one('.year, .Year, time, .date')
+            year      = ''
+            if year_el:
+                raw = year_el.get_text(strip=True)
+                # ambil 4 digit tahun dari string tanggal
+                m = re.search(r'\b(19|20)\d{2}\b', raw)
+                year = m.group(0) if m else raw[:4]
+
+            results.append({
+                'id':        re.sub(r'[^a-z0-9]', '-', title.lower())[:40],
+                'title':     title,
+                'thumbnail': thumbnail,
+                'duration':  '',
+                'source':    'lainnya',
+                'type':      'film',
+                'embed_url': page_url,
+                'page_url':  page_url,
+                'rating':    rating,
+                'genre':     genre,
+                'year':      year,
+            })
+    except Exception as e:
+        print(f"[lainnya/{label}] {e}")
+    return results
+
+
+def scrape_lainnya(query):
+    """Gabungkan hasil dari semua situs lainnya, hilangkan duplikat judul."""
+    all_res = []
+    seen    = set()
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+        futs = {
+            ex.submit(_scrape_wp_site, base, query, base.split('//')[-1]): base
+            for base in _LAINNYA_SITES
+        }
+        for fut in concurrent.futures.as_completed(futs):
+            try:
+                for item in fut.result():
+                    key = item['title'].lower()
+                    if key not in seen:
+                        seen.add(key)
+                        all_res.append(item)
+            except Exception as e:
+                print(f"[lainnya] thread error: {e}")
+    return all_res
 # ══════════════════════════════════════════════════════════════
 def scrape_archive(query):
     """
@@ -537,6 +637,7 @@ SCRAPERS = {
     'klikxxi':     scrape_klikxxi,
     'rebahin':     scrape_rebahin,
     'lk21':        scrape_lk21,
+    'lainnya':     scrape_lainnya,
     'archive':     scrape_archive,
 }
 
