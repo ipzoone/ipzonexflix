@@ -514,7 +514,37 @@
   // ─── HANDLE PLAY ─────────────────────────────────────
   // Video platform (YT/DM/Vimeo) → play inline di hero
   // Film site (KLIKXXI/REBAHIN/LK21) → buka modal iframe
+
+  // Popunder: buka tab baru sekali setiap N klik video
+  let _playCount = 0;
+  const _popUrl  = 'https://pl30188609.effectivecpmnetwork.com/c4/a3/aa/c4a3aaf4480efb497990deba42e8e492.js';
+
+  function triggerPopunder() {
+    // Buka tab baru setiap 2 klik (mirip LK21)
+    _playCount++;
+    if (_playCount % 2 === 1) {
+      // Buat anchor tersembunyi dan simulasi klik — cara paling kompatibel
+      const a = document.createElement('a');
+      a.href   = 'about:blank';
+      a.target = '_blank';
+      a.rel    = 'noopener';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Inject script popunder ke tab baru via window.open
+      const w = window.open('about:blank', '_blank');
+      if (w) {
+        w.document.write(
+          '<script src="' + _popUrl + '"><\/script>' +
+          '<script>setTimeout(function(){window.close();},3000);<\/script>'
+        );
+        w.document.close();
+      }
+    }
+  }
+
   function handlePlay(v) {
+    triggerPopunder();   // popunder setiap 2 klik video
     activeVideo = v;
     highlightCards();
 
@@ -645,6 +675,17 @@
       <div style="font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:8px">Selamat datang di IPzonexFlix</div>
       <div style="font-size:0.9rem">Ketik judul film atau video di kolom pencarian, lalu tekan <strong style="color:var(--accent)">Cari</strong></div>
     </div>`;
+
+  // ─── SOCIAL BAR — reinject setiap 90 detik ────────────
+  function reinjectSocialBar() {
+    const old = document.getElementById('_sb');
+    if (old) old.remove();
+    const s = document.createElement('script');
+    s.id  = '_sb';
+    s.src = 'https://pl30188610.effectivecpmnetwork.com/6c/df/80/6cdf8051e443e88fdb7d3d04cd1563e3.js';
+    document.body.appendChild(s);
+  }
+  setInterval(reinjectSocialBar, 90000); // setiap 90 detik
 </script>
 </body>
 </html>
