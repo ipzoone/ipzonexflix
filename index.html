@@ -44,18 +44,26 @@
       backdrop-filter: blur(8px);
       border-bottom: 1px solid rgba(255,255,255,.07);
     }
-    .logo {
-      font-size: 1.5rem; font-weight: 900;
-      color: var(--accent); letter-spacing: -1px; text-decoration: none;
-      white-space: nowrap;
-    }
-    .logo-2 {
-  --kx: #f5a623; /* Mendeklarasikan variabel warna baru */
+    /* Pembungkus utama agar teks menyatu sempurna */
+.logo-wrapper {
+  display: inline-flex;
+  text-decoration: none; /* Menghilangkan garis bawah pada link */
+}
+
+.logo {
   font-size: 1.5rem; 
   font-weight: 900;
-  color: var(--kx); /* Mengubah dari var(--accent) menjadi var(--kx) */
+  color: var(--accent); 
   letter-spacing: -1px; 
-  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logo-2 {
+  --kx: #f5a623; /* Deklarasi variabel warna kamu */
+  font-size: 1.5rem; 
+  font-weight: 900;
+  color: var(--kx); 
+  letter-spacing: -1px; 
   white-space: nowrap;
 }
     .source-filters { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -321,7 +329,9 @@
 
   <!-- NAVBAR -->
   <nav>
-    <a href="#" class="logo">IPzonex</a><a href="#" class="logo-2">Hub</a>
+    <a href="#" class="logo-wrapper">
+  <span class="logo">IPzonex</span><span class="logo-2">Hub</span>
+</a>
 
     <div class="source-filters">
       <div class="pill on" data-src="youtube"     onclick="toggleSrc(this)">YouTube</div>
@@ -376,16 +386,24 @@
       <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
       <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
     </div>
-    <div class="ad-banner-item">
+    <!-- <div class="ad-banner-item">
       <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
       <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
-    </div>
+    </div> -->
   </div>
 
   <!-- SECTIONS -->
   <div class="sections" id="sections"></div>
 
-  <footer>IPzonexHub — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org</footer>
+  <footer>
+  <div class="footer-platforms">
+    IPzonexHub — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org
+  </div>
+  <br>
+  <div class="footer-copyright">
+    &copy; 2026 <span class="brand-name">ipzonexhub</span>. All Rights Reserved.
+  </div>
+</footer>
 
   <!-- FILM MODAL (untuk situs streaming) -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
