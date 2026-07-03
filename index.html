@@ -267,7 +267,51 @@
       text-decoration: none; display: inline-block;
     }
     .modal-open-btn:hover { opacity: .85; }
+    /* telegram */
+    .telegram-only {
+  display: inline-block;
+  width: 28px;  /* Atur ukuran lebar logo di sini */
+  height: 28px; /* Atur ukuran tinggi logo di sini */
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
 
+.telegram-icon-white {
+  width: 100%;
+  height: 100%;
+  fill: #ffffff; /* Mengunci warna logo jadi PUTIH */
+}
+
+/* Efek opsional: sediki   membesar dan berubah warna emas khas kamu saat disentuh kursor */
+.telegram-only:hover {
+  transform: scale(1.1);
+}
+.telegram-only:hover .telegram-icon-white {
+  fill: var(--kx, #f5a623); 
+}
+.saweria-only {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;           /* Ukuran bulatannya sama persis dengan telegram */
+  height: 30px;
+  background-color: #222; /* Background gelap */
+  border-radius: 50%;    /* Bulat sempurna */
+  vertical-align: middle;
+  margin-left: 5px;      /* Jarak tipis dengan tombol sebelah */
+  transition: all 0.2s ease;
+}
+
+.saweria-icon-white {
+  width: 15px;           /* Ukuran ikon di dalam */
+  height: 15px;
+  fill: #ffffff;         /* Warna putih default */
+}
+
+/* Efek saat disentuh kursor */
+.saweria-only:hover {
+  background-color: var(--kx, #f5a623); /* Berubah jadi emas IPzonexHub saat di-hover */
+}
     /* ── SPINNER ── */
     .spinner-wrap {
       display: flex; align-items: center; gap: 11px;
@@ -319,6 +363,41 @@
       height: 50px;
       overflow: hidden;
     }
+    .marquee-modern {
+  --kx: #f5a623; /* Warna emas kamu */
+  background-color: #0c0c0c; /* Background hitam gelap */
+  border-top: 1px solid var(--kx);
+  border-bottom: 1px solid var(--kx);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 10px 0;
+  box-shadow: 0 0 15px rgba(245, 166, 35, 0.1); /* Efek glow emas tipis */
+}
+
+.marquee-content {
+  display: inline-block;
+  animation: jalan-mulus 20s linear infinite; /* Kecepatan jalan (20 detik) */
+}
+
+.marquee-content span {
+  color: #ffffff;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  padding-right: 50px; /* Jarak antar teks ulang */
+}
+
+/* Membuat teks berjalan tanpa patah-patah */
+@keyframes jalan-mulus {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Efek opsional: kalau kursor didekati, teksnya berhenti jalan */
+.marquee-modern:hover .marquee-content {
+  animation-play-state: paused;
+}
   </style>
 
   <!-- Popunder Ad -->
@@ -343,6 +422,29 @@
       <div class="pill on" data-src="lainnya"     onclick="toggleSrc(this)">Lainnya</div>
       <div class="pill on" data-src="archive"     onclick="toggleSrc(this)">Archive.org</div>
     </div>
+
+<div class="marquee-modern">
+  <!-- Kita pakai flex supaya iklan 1, iklan 2, dan teks langsung berjejer ke samping -->
+  <div class="marquee-content" style="display: flex; align-items: center; gap: 20px;">
+    
+    <!-- IKLAN KECIL 1 (Kiri) -->
+    <div class="ad-banner-item" style="display: inline-block; flex-shrink: 0; width: 320px; height: 50px;">
+      <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
+      <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
+    </div>
+     
+    <!-- IKLAN KECIL 2 (Kanan) -->
+    <div class="ad-banner-item" style="display: inline-block; flex-shrink: 0; width: 320px; height: 50px;">
+      <script>atOptions={'key':'8949aeba10d4283afac53bd3f61f61a0','format':'iframe','height':50,'width':320,'params':{}};</script>
+      <script src="https://www.highperformanceformat.com/8949aeba10d4283afac53bd3f61f61a0/invoke.js"></script>
+    </div>
+
+    <!-- TEKS PENGUMUMAN IPZONEXHUB -->
+    <span style="white-space: nowrap; flex-shrink: 0;">🔥 PENTING: INI SITUS WEB ASLI IPZONEXHUB! JANGAN LUPA SAVE URL INI & SHARE KE TEMAN-TEMAN! 🔥</span>
+    <span style="white-space: nowrap; flex-shrink: 0;">🔥 PENTING: INI SITUS WEB ASLI IPZONEXHUB! JANGAN LUPA SAVE URL INI & SHARE KE TEMAN-TEMAN! 🔥</span>
+    
+  </div>
+</div>
 
     <div class="search-bar">
       <input id="qInput" type="text" placeholder="Ketik judul film atau video…" />
@@ -395,13 +497,28 @@
   <!-- SECTIONS -->
   <div class="sections" id="sections"></div>
 
+
+
   <footer>
+     <a href="https://t.me/batman4446" class="telegram-only" target="_blank" rel="noopener noreferrer">
+  <svg viewBox="0 0 24 24" class="telegram-icon-white">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.05-.21.05-.36-.18-.36-.05 0-.15.02-.27.1-.15.1-2.73 1.8-5.51 3.66-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.37.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .24z"/>
+  </svg>
+</a>
+<a href="https://saweria.co/ipzonex" class="saweria-only" target="_blank" rel="noopener noreferrer" title="Dukung IPzonexHub via Saweria">
+  <svg viewBox="0 0 24 24" class="saweria-icon-white">
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+  </svg>
+</a>
+<br>
+<br>
   <div class="footer-platforms">
     IPzonexHub — YouTube · Dailymotion · Vimeo · KLIKXXI · REBAHIN · LK21 · Lainnya · Archive.org
   </div>
   <br>
+  
   <div class="footer-copyright">
-    &copy; 2026 <span class="brand-name">ipzonexhub</span>. All Rights Reserved.
+    &copy; 2026 <span class="brand-name">IPZONEXHUB</span>. All Rights Reserved.
   </div>
 </footer>
 
