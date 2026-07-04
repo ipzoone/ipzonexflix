@@ -422,7 +422,7 @@
       <div class="pill on" data-src="lainnya"     onclick="toggleSrc(this)">Lainnya</div>
       <div class="pill on" data-src="archive"     onclick="toggleSrc(this)">Archive.org</div>
     </div>
-    <p style="font-size: 12px; color: #ccc; line-height: 1.6; margin-bottom: 12px;">
+    <p style="font-size: 10px; color: #ccc; line-height: 1.6; margin-bottom: 12px;">
     <strong>Mesin Pencari Video Terlengkap</strong><br>
     Lupakan cara lama browsing yang ribet. Ketik judul film atau video yang kamu cari di sini, dan langsung tonton tanpa drama. Pusat pencarian video tercepat dan terlengkap!
   </p>
@@ -780,8 +780,10 @@
     highlightCards();
 
     const meta = SRC_META[v.source] || {};
+    // Cek type dari item langsung (prioritas), fallback ke SRC_META
+    const itemType = v.type || meta.type || 'video';
 
-    if (meta.type === 'film') {
+    if (itemType === 'film') {
       openModal(v);
     } else {
       playInHero(v);

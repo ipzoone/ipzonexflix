@@ -16,18 +16,21 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 # ══════════════════════════════════════════════════════════════
 #  HELPER
 # ══════════════════════════════════════════════════════════════
-def get(url, timeout=12, **kwargs):
+def get(url, timeout=12, verify=True, **kwargs):
     """GET dengan retry 1x"""
     try:
-        r = requests.get(url, headers=HEADERS, timeout=timeout, **kwargs)
+        r = requests.get(url, headers=HEADERS, timeout=timeout, verify=verify, **kwargs)
         r.raise_for_status()
         return r
     except Exception:
         try:
-            r = requests.get(url, headers=HEADERS, timeout=timeout+5, **kwargs)
+            r = requests.get(url, headers=HEADERS, timeout=timeout+5, verify=verify, **kwargs)
             return r
         except Exception as e:
             raise e
@@ -114,7 +117,7 @@ def scrape_vimeo(query):
     url = f"https://vimeo.com/search?q={requests.utils.quote(query)}"
     results = []
     try:
-        soup = BeautifulSoup(get(url).text, 'html.parser')
+        soup = BeautifulSoup(get(url, verify=False).text, 'html.parser')
         for script in soup.find_all('script', type='application/ld+json'):
             try:
                 data  = json.loads(script.string or '{}')
@@ -174,18 +177,11 @@ def scrape_vimeo(query):
 #  4. KLIKXXI  (flagsio.com)
 # ══════════════════════════════════════════════════════════════
 def scrape_klikxxi(query):
-    """
-    KLIKXXI = situs film Indonesia di flagsio.com
-    Scrape halaman search/home → ambil listing film.
-    Karena search-nya berbasis WordPress, gunakan ?s=query
-    """
     base = "https://flagsio.com"
     url  = f"{base}/?s={requests.utils.quote(query)}"
     results = []
     try:
         soup = BeautifulSoup(get(url).text, 'html.parser')
-
-        # Coba berbagai selector card film WordPress/LK21 theme
         cards = (
             soup.select('article.item') or
             soup.select('div.item') or
@@ -193,8 +189,6 @@ def scrape_klikxxi(query):
             soup.select('.movies-list .ml-item') or
             soup.select('.search-page .result-item')
         )
-
-        # Kalau search kosong, ambil dari homepage listing
         if not cards:
             soup2 = BeautifulSoup(get(base).text, 'html.parser')
             cards = (
@@ -203,35 +197,27 @@ def scrape_klikxxi(query):
                 soup2.select('article') or
                 soup2.select('div.ml-item')
             )
-
         for card in cards[:25]:
-            # Judul
             title_el = card.select_one('h2, h3, .title, .itemTitle a')
             title    = title_el.get_text(strip=True) if title_el else ''
-            if not title:
-                continue
+            if not title: continue
 
-            # Link halaman film
             link_el  = card.select_one('a[href]')
             page_url = link_el['href'] if link_el else base
             if page_url.startswith('/'):
                 page_url = base + page_url
 
-            # Thumbnail
             thumb_el  = card.select_one('img[src], img[data-src]')
             thumbnail = ''
             if thumb_el:
                 thumbnail = thumb_el.get('data-src') or thumb_el.get('src') or ''
 
-            # Rating
             rating_el = card.select_one('.rating, .score, span.imdb, .rate')
             rating    = rating_el.get_text(strip=True) if rating_el else ''
 
-            # Genre / quality badge
             genre_el = card.select_one('.genres a, .category a, .genre')
             genre    = genre_el.get_text(strip=True) if genre_el else ''
 
-            # Tahun
             year_el = card.select_one('.year, .date, time')
             year    = year_el.get_text(strip=True)[:4] if year_el else ''
 
@@ -242,13 +228,12 @@ def scrape_klikxxi(query):
                 'duration':  '',
                 'source':    'klikxxi',
                 'type':      'film',
-                'embed_url': page_url,   # dibuka di iframe/tab
+                'embed_url': page_url,
                 'page_url':  page_url,
                 'rating':    rating,
                 'genre':     genre,
                 'year':      year,
             })
-
     except Exception as e:
         print(f"[KLIKXXI] {e}")
     return results
@@ -263,7 +248,6 @@ def scrape_rebahin(query):
     results = []
     try:
         soup = BeautifulSoup(get(url).text, 'html.parser')
-
         cards = (
             soup.select('article.item') or
             soup.select('.movies-list .ml-item') or
@@ -271,23 +255,18 @@ def scrape_rebahin(query):
             soup.select('article') or
             soup.select('div.item')
         )
-
-        # Kalau search kosong → ambil trending/homepage
         if not cards:
             soup2 = BeautifulSoup(get(base).text, 'html.parser')
-            # Rebahin homepage pakai card dengan gambar & judul
             cards = (
                 soup2.select('article.item') or
                 soup2.select('div.ml-item') or
                 soup2.select('.TPost') or
                 soup2.select('article')
             )
-
         for card in cards[:25]:
             title_el = card.select_one('h2, h3, .Title, .title, a')
             title    = title_el.get_text(strip=True) if title_el else ''
-            if not title or len(title) < 2:
-                continue
+            if not title or len(title) < 2: continue
 
             link_el  = card.select_one('a[href]')
             page_url = link_el['href'] if link_el else base
@@ -323,7 +302,6 @@ def scrape_rebahin(query):
                 'genre':     genre,
                 'year':      year,
             })
-
     except Exception as e:
         print(f"[REBAHIN] {e}")
     return results
@@ -338,14 +316,12 @@ def scrape_lk21(query):
     results = []
     try:
         soup = BeautifulSoup(get(url).text, 'html.parser')
-
         cards = (
             soup.select('article.item') or
             soup.select('div.item') or
             soup.select('article') or
             soup.select('.movies-list .ml-item')
         )
-
         if not cards:
             soup2 = BeautifulSoup(get(base).text, 'html.parser')
             cards = (
@@ -354,12 +330,10 @@ def scrape_lk21(query):
                 soup2.select('div.item') or
                 soup2.select('div.ml-item')
             )
-
         for card in cards[:25]:
             title_el = card.select_one('h2, h3, .title, .itemTitle a')
             title    = title_el.get_text(strip=True) if title_el else ''
-            if not title or len(title) < 2:
-                continue
+            if not title or len(title) < 2: continue
 
             link_el  = card.select_one('a[href]')
             page_url = link_el['href'] if link_el else base
@@ -394,15 +368,13 @@ def scrape_lk21(query):
                 'genre':     genre,
                 'year':      year,
             })
-
     except Exception as e:
         print(f"[LK21] {e}")
     return results
 
 
 # ══════════════════════════════════════════════════════════════
-#  7. LAINNYA  (vitavica.com + 168.144.38.21 + 167.99.71.6)
-#              Semua pakai WordPress/LK21 theme yang sama
+#  7. LAINNYA & ADULT EXTENSIONS
 # ══════════════════════════════════════════════════════════════
 _LAINNYA_SITES = [
     "https://vitavica.com",
@@ -411,20 +383,16 @@ _LAINNYA_SITES = [
 ]
 
 def _scrape_wp_site(base, query, label):
-    """Scraper generik untuk situs WordPress bertema LK21."""
     results = []
     try:
         url  = f"{base}/?s={requests.utils.quote(query)}"
         soup = BeautifulSoup(get(url, timeout=15).text, 'html.parser')
-
         cards = (
             soup.select('article.item') or
             soup.select('div.item') or
             soup.select('article') or
             soup.select('.ml-item')
         )
-
-        # fallback ke homepage kalau search kosong
         if not cards:
             soup2 = BeautifulSoup(get(base, timeout=15).text, 'html.parser')
             cards = (
@@ -432,12 +400,10 @@ def _scrape_wp_site(base, query, label):
                 soup2.select('div.item') or
                 soup2.select('article')
             )
-
         for card in cards[:25]:
             title_el = card.select_one('h2, h3, .Title, .title, a')
             title    = title_el.get_text(strip=True) if title_el else ''
-            if not title or len(title) < 2:
-                continue
+            if not title or len(title) < 2: continue
 
             link_el  = card.select_one('a[href]')
             page_url = link_el['href'] if link_el else base
@@ -454,14 +420,13 @@ def _scrape_wp_site(base, query, label):
             rating_el = card.select_one('.rating, .score, .imdb, .Qlty')
             rating    = rating_el.get_text(strip=True) if rating_el else ''
 
-            genre_el  = card.select_one('.genres a, .category a, .genre')
+            genre_el  = card.select_one('.genres a, .category a')
             genre     = genre_el.get_text(strip=True) if genre_el else ''
 
             year_el   = card.select_one('.year, .Year, time, .date')
             year      = ''
             if year_el:
                 raw = year_el.get_text(strip=True)
-                # ambil 4 digit tahun dari string tanggal
                 m = re.search(r'\b(19|20)\d{2}\b', raw)
                 year = m.group(0) if m else raw[:4]
 
@@ -483,15 +448,181 @@ def _scrape_wp_site(base, query, label):
     return results
 
 
+def _scrape_odysee(query):
+    results = []
+    try:
+        search_api = (
+            "https://lighthouse.lbry.com/search"
+            f"?s={requests.utils.quote(query)}"
+            "&size=20&mediaType=video&nsfw=false&free_only=true"
+        )
+        hits = get(search_api, timeout=15).json()
+        if not isinstance(hits, list) or not hits:
+            return results
+
+        claim_ids = [h['claimId'] for h in hits if h.get('claimId')]
+        if not claim_ids:
+            return results
+
+        resolve_api = "https://api.lbry.tv/api/v1/proxy"
+        r = requests.post(resolve_api, json={
+            "method": "claim_search",
+            "params": {"claim_ids": claim_ids, "page_size": len(claim_ids)}
+        }, headers=HEADERS, timeout=15)
+        items = r.json().get('result', {}).get('items', [])
+
+        for item in items:
+            name  = item.get('name', '')
+            title = item.get('value', {}).get('title', '') or name
+            if not title:
+                continue
+
+            ch = (item.get('signing_channel', {}).get('name', '') or '').lstrip('@')
+
+            thumb_raw = item.get('value', {}).get('thumbnail', {})
+            thumbnail = thumb_raw.get('url', '') if isinstance(thumb_raw, dict) else ''
+
+            if ch:
+                page_url  = f"https://odysee.com/@{ch}/{name}"
+                embed_url = f"https://odysee.com/$/embed/@{ch}/{name}?autoplay=1"
+            else:
+                page_url  = f"https://odysee.com/{name}"
+                embed_url = f"https://odysee.com/$/embed/{name}?autoplay=1"
+
+            results.append({
+                'id':        re.sub(r'[^a-z0-9]', '-', title.lower())[:40],
+                'title':     title,
+                'thumbnail': thumbnail,
+                'duration':  '',
+                'source':    'lainnya',
+                'type':      'video',
+                'embed_url': embed_url,
+                'page_url':  page_url,
+                'rating':    '',
+                'genre':     '',
+                'year':      '',
+            })
+    except Exception as e:
+        print(f"[lainnya/odysee] {e}")
+    return results
+
+
+def _scrape_xnxx(query):
+    results = []
+    try:
+        url = f"https://www.xnxx.com/search/{requests.utils.quote(query)}"
+        soup = BeautifulSoup(get(url, timeout=15).text, 'html.parser')
+        for card in soup.select('div.thumb-block'):
+            title_el = card.select_one('p.title a')
+            if not title_el: continue
+            title = title_el.get('title') or title_el.get_text(strip=True)
+            page_url = title_el.get('href', '')
+            if page_url.startswith('/'):
+                page_url = 'https://www.xnxx.com' + page_url
+            
+            m = re.search(r'video-([a-z0-9]+)/', page_url)
+            vid = m.group(1) if m else re.sub(r'[^a-z0-9]', '-', title.lower())[:30]
+            
+            thumb_el = card.select_one('div.thumb img')
+            thumbnail = thumb_el.get('data-src') or thumb_el.get('src') or '' if thumb_el else ''
+            
+            dur_el = card.select_one('span.duration')
+            duration = dur_el.get_text(strip=True).replace('(', '').replace(')', '') if dur_el else ''
+            
+            embed_url = page_url.replace('xnxx.com/video-', 'xnxx.com/embedframe/')
+            
+            results.append({
+                'id': vid, 'title': title, 'thumbnail': thumbnail,
+                'duration': duration, 'source': 'lainnya', 'type': 'video',
+                'embed_url': embed_url, 'page_url': page_url,
+                'rating': '', 'genre': '', 'year': '',
+            })
+    except Exception as e:
+        print(f"[lainnya/xnxx] {e}")
+    return results
+
+
+def _scrape_xhamster(query):
+    results = []
+    try:
+        url = f"https://xhamster.com/search?q={requests.utils.quote(query)}"
+        soup = BeautifulSoup(get(url, timeout=15).text, 'html.parser')
+        for card in soup.select('[data-type="video"], div.video-thumb'):
+            title_el = card.select_one('a.video-thumb__title, .role-link[title]')
+            if not title_el: continue
+            title = title_el.get('title') or title_el.get_text(strip=True)
+            page_url = title_el.get('href', '')
+            
+            m = re.search(r'videos/.*-(\d+)', page_url)
+            vid = m.group(1) if m else re.sub(r'[^a-z0-9]', '-', title.lower())[:30]
+            
+            thumb_el = card.select_one('img.video-thumb__image, img')
+            thumbnail = thumb_el.get('data-src') or thumb_el.get('src') or '' if thumb_el else ''
+            
+            dur_el = card.select_one('.video-thumb__duration, .duration')
+            duration = dur_el.get_text(strip=True) if dur_el else ''
+            
+            embed_url = f"https://xhamster.com/embed/{vid}" if vid.isdigit() else page_url
+            
+            results.append({
+                'id': vid, 'title': title, 'thumbnail': thumbnail,
+                'duration': duration, 'source': 'lainnya', 'type': 'video',
+                'embed_url': embed_url, 'page_url': page_url,
+                'rating': '', 'genre': '', 'year': '',
+            })
+    except Exception as e:
+        print(f"[lainnya/xhamster] {e}")
+    return results
+
+
+def _scrape_xvideos(query):
+    results = []
+    try:
+        url = f"https://www.xvideos.com/?k={requests.utils.quote(query)}"
+        soup = BeautifulSoup(get(url, timeout=15).text, 'html.parser')
+        for card in soup.select('div[id^="video_"]'):
+            title_el = card.select_one('p.title a')
+            if not title_el: continue
+            title = title_el.get('title') or title_el.get_text(strip=True)
+            page_url = title_el.get('href', '')
+            if page_url.startswith('/'):
+                page_url = 'https://www.xvideos.com' + page_url
+                
+            m = re.search(r'video\.([a-z0-9]+)/', page_url)
+            vid = m.group(1) if m else re.sub(r'[^a-z0-9]', '-', title.lower())[:30]
+            
+            thumb_el = card.select_one('div.thumb img')
+            thumbnail = thumb_el.get('data-src') or thumb_el.get('src') or '' if thumb_el else ''
+            
+            dur_el = card.select_one('span.duration')
+            duration = dur_el.get_text(strip=True) if dur_el else ''
+            
+            embed_url = f"https://www.xvideos.com/embedframe/{vid}"
+            
+            results.append({
+                'id': vid, 'title': title, 'thumbnail': thumbnail,
+                'duration': duration, 'source': 'lainnya', 'type': 'video',
+                'embed_url': embed_url, 'page_url': page_url,
+                'rating': '', 'genre': '', 'year': '',
+            })
+    except Exception as e:
+        print(f"[lainnya/xvideos] {e}")
+    return results
+
+
 def scrape_lainnya(query):
-    """Gabungkan hasil dari semua situs lainnya, hilangkan duplikat judul."""
     all_res = []
     seen    = set()
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=9) as ex:
         futs = {
             ex.submit(_scrape_wp_site, base, query, base.split('//')[-1]): base
             for base in _LAINNYA_SITES
         }
+        futs[ex.submit(_scrape_odysee, query)] = 'odysee'
+        futs[ex.submit(_scrape_xnxx, query)] = 'xnxx'
+        futs[ex.submit(_scrape_xhamster, query)] = 'xhamster'
+        futs[ex.submit(_scrape_xvideos, query)] = 'xvideos'
+
         for fut in concurrent.futures.as_completed(futs):
             try:
                 for item in fut.result():
@@ -502,12 +633,12 @@ def scrape_lainnya(query):
             except Exception as e:
                 print(f"[lainnya] thread error: {e}")
     return all_res
+
+
+# ══════════════════════════════════════════════════════════════
+#  8. ARCHIVE
 # ══════════════════════════════════════════════════════════════
 def scrape_archive(query):
-    """
-    Scrape Internet Archive via Search API.
-    Hanya ambil mediatype:movies yang bisa di-embed langsung.
-    """
     results = []
     try:
         api = (
@@ -522,8 +653,7 @@ def scrape_archive(query):
         for doc in docs:
             iid   = doc.get('identifier', '')
             title = doc.get('title', '')
-            if not iid or not title:
-                continue
+            if not iid or not title: continue
 
             year  = str(doc.get('year', ''))[:4]
             desc  = doc.get('description', '')
@@ -550,24 +680,17 @@ def scrape_archive(query):
                 'genre':     subject[:40] if subject else 'Public Domain',
                 'year':      year,
             })
-
     except Exception as e:
         print(f"[Archive.org] {e}")
     return results
 
 
 # ══════════════════════════════════════════════════════════════
-#  8. PLEX  (Plex Free Movies — pakai embed player publik)
+#  9. PLEX
 # ══════════════════════════════════════════════════════════════
 def scrape_plex(query):
-    """
-    Plex menyediakan film gratis tanpa login via app.plex.tv.
-    Gunakan Plex metadata API publik untuk search.
-    Embed via player.plex.tv yang bisa diakses tanpa akun.
-    """
     results = []
     try:
-        # Plex Search API publik (metadata provider)
         api = (
             "https://metadata.provider.plex.tv/library/search"
             f"?query={requests.utils.quote(query)}"
@@ -590,15 +713,13 @@ def scrape_plex(query):
         for item in items[:20]:
             guid  = item.get('guid', '')
             title = item.get('title', '')
-            if not title:
-                continue
+            if not title: continue
 
             year  = str(item.get('year', ''))
             thumb = item.get('thumb', '') or item.get('art', '')
             if thumb and thumb.startswith('/'):
                 thumb = 'https://metadata.provider.plex.tv' + thumb
 
-            # Extract plex ID from guid (plex://movie/5d776b...)
             m = re.search(r'plex://[^/]+/([a-f0-9]+)', guid)
             pid = m.group(1) if m else re.sub(r'[^a-z0-9]', '-', title.lower())[:30]
 
@@ -621,7 +742,6 @@ def scrape_plex(query):
                 'genre':     genre,
                 'year':      year,
             })
-
     except Exception as e:
         print(f"[Plex] {e}")
     return results
@@ -639,6 +759,7 @@ SCRAPERS = {
     'lk21':        scrape_lk21,
     'lainnya':     scrape_lainnya,
     'archive':     scrape_archive,
+    'plex':        scrape_plex,
 }
 
 
@@ -665,21 +786,18 @@ def api_videos():
             except Exception as e:
                 print(f"[{futs[fut]}] thread error: {e}")
 
-    # Overwrite videos.json dengan hasil scraping terbaru (hapus data lama)
-    # Hanya di local — di cloud (Railway dll) filesystem tidak persistent
     try:
         with open('videos.json', 'w', encoding='utf-8') as f:
             json.dump({"query": query, "videos": all_results}, f,
                       ensure_ascii=False, indent=2)
     except Exception:
-        pass  # Tidak masalah kalau gagal (misal di environment read-only)
+        pass
 
     return jsonify(all_results)
 
 
 @app.route('/api/sources')
 def api_sources():
-    """Info semua sumber yang tersedia"""
     return jsonify(list(SCRAPERS.keys()))
 
 
