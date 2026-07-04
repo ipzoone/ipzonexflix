@@ -53,7 +53,10 @@
 .logo {
   font-size: 1.5rem; 
   font-weight: 900;
-  color: var(--accent); 
+  background: linear-gradient(90deg, #cc0000 0%, #e63333 40%, #ff6666 75%, #ffffff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   letter-spacing: -1px; 
   white-space: nowrap;
 }
@@ -68,9 +71,9 @@
 }
     .source-filters { display: flex; gap: 6px; flex-wrap: wrap; }
     .pill {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 11px; border-radius: 20px; font-size: 11px; font-weight: 700;
-      cursor: pointer; border: 2px solid transparent;
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 20px; font-size: 9.5px; font-weight: 700;
+      cursor: pointer; border: 1.5px solid transparent;
       transition: all .18s; user-select: none; opacity: .38; white-space: nowrap;
     }
     .pill.on { opacity: 1; }
@@ -119,6 +122,80 @@
     }
     .hero-placeholder .icon { font-size: 3.5rem; }
     .hero-placeholder p { font-size: .95rem; }
+
+    /* ── HERO LOADING ── */
+    .hero-loading {
+      width: 100%; height: min(56.25vw, 78vh);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      background: #080808;
+    }
+    .hero-loading-bar {
+      width: 180px; height: 4px; border-radius: 4px;
+      background: rgba(255,255,255,.08); overflow: hidden;
+    }
+    .hero-loading-bar::after {
+      content: ''; display: block; height: 100%;
+      width: 40%; border-radius: 4px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      animation: heroSlide 1.2s ease-in-out infinite;
+    }
+    @keyframes heroSlide {
+      0%   { transform: translateX(-200%); }
+      100% { transform: translateX(500%); }
+    }
+    .hero-loading-text {
+      font-size: 13px; color: var(--muted); letter-spacing: .5px;
+    }
+    .hero-loading-dots::after {
+      content: '';
+      animation: dots 1.4s steps(4, end) infinite;
+    }
+    @keyframes dots {
+      0%  { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
+
+    /* ── SHIMMER SKELETON ── */
+    @keyframes shimmer {
+      0%   { background-position: -600px 0; }
+      100% { background-position: 600px 0; }
+    }
+    .shimmer-base {
+      background: linear-gradient(90deg,
+        rgba(255,255,255,.05) 25%,
+        rgba(255,255,255,.13) 50%,
+        rgba(255,255,255,.05) 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 6px;
+    }
+    .skeleton-section { margin-top: 28px; }
+    .skeleton-sec-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 11px;
+    }
+    .skeleton-sec-title {
+      height: 14px; width: 120px;
+    }
+    .skeleton-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(var(--card-w, 160px), 1fr));
+      gap: 10px;
+    }
+    .skeleton-card {
+      border-radius: 7px; overflow: hidden;
+    }
+    .skeleton-thumb {
+      width: 100%; aspect-ratio: 16/9;
+    }
+    .skeleton-line {
+      margin: 8px 8px 4px; height: 11px; width: 80%;
+    }
+    .skeleton-line.short {
+      width: 50%; margin-bottom: 10px;
+    }
 
     /* ── NOW PLAYING BAR ── */
     .now-bar {
@@ -398,6 +475,85 @@
 .marquee-modern:hover .marquee-content {
   animation-play-state: paused;
 }
+
+/* ═══ INTERSTITIAL AD ═══ */
+#interstitialOverlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.82);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+#interstitialOverlay.show {
+  display: flex;
+}
+#interstitialBox {
+  position: relative;
+  width: min(92vw, 780px);
+  height: min(85vh, 520px);
+  background: #111;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 40px rgba(0,0,0,.7);
+  pointer-events: all;
+  overflow: hidden;
+}
+#interstitialHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #1a1a1a;
+  font-size: 12px;
+  color: #aaa;
+  flex-shrink: 0;
+}
+#interstitialLabel {
+  font-weight: 600;
+  color: #f5a623;
+  letter-spacing: .5px;
+}
+#interstitialCountdown {
+  font-size: 11px;
+}
+#interstitialFrame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  pointer-events: all;
+  cursor: auto;
+  position: relative;
+  z-index: 1;
+}
+#interstitialSkip {
+  display: none;
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 10;
+  background: rgba(0,0,0,.75);
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  gap: 4px;
+  align-items: center;
+  backdrop-filter: blur(4px);
+  transition: background .2s;
+  pointer-events: all;
+}
+#interstitialSkip:hover {
+  background: rgba(255,255,255,.15);
+}
+#interstitialSkip.visible {
+  display: inline-flex;
+}
   </style>
 
   <!-- Popunder Ad -->
@@ -590,6 +746,23 @@
     </div>
   </div>
 
+  <!-- ═══ INTERSTITIAL AD OVERLAY ═══ -->
+  <div id="interstitialOverlay">
+    <div id="interstitialBox">
+      <div id="interstitialHeader">
+        <span id="interstitialLabel">Pesan Sponsor</span>
+        <span id="interstitialCountdown">Lewati dalam <b id="skipSec">10</b>s</span>
+      </div>
+      <iframe id="interstitialFrame" src="about:blank"
+        allow="autoplay; encrypted-media; fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"></iframe>
+      <button id="interstitialSkip" onclick="closeInterstitial()">
+        <span class="material-icons-round" style="font-size:15px;vertical-align:middle">close</span>
+        Lewati
+      </button>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <!-- Social Bar Ad -->
@@ -631,7 +804,17 @@
   // ─── SEARCH ───────────────────────────────────────────
   async function doSearch() {
     const q = document.getElementById('qInput').value.trim() || 'film';
-    setSections(spinnerHTML('Mencari dari semua sumber…'));
+
+    // Tampilkan loading di hero
+    document.getElementById('hero').innerHTML = `
+      <div class="hero-loading">
+        <span class="material-icons-round" style="font-size:2.8rem;color:var(--accent);opacity:.7">movie_filter</span>
+        <div class="hero-loading-text hero-loading-dots">Memuat video</div>
+        <div class="hero-loading-bar"></div>
+      </div>`;
+
+    // Shimmer skeleton di sections
+    setSections(shimmerHTML());
 
     try {
       const srcs = [...activeSrcs].join(',');
@@ -654,6 +837,7 @@
     }
 
     renderSections();
+    showInterstitial();
     const first = allVideos.find(v => activeSrcs.has(v.source));
     if (first) handlePlay(first);
   }
@@ -858,6 +1042,81 @@
     });
   }
 
+  // ─── INTERSTITIAL AD ─────────────────────────────────
+  // Bobot: moviezone muncul 50%, sisanya masing-masing ~17%
+  const _INTERSTITIAL_POOL = [
+    'https://moviezone-wheat.vercel.app/',
+    'https://moviezone-wheat.vercel.app/',
+    'https://moviezone-wheat.vercel.app/',
+    'https://beritainbae.blogspot.com/',
+    'https://viral2026-xxx.blogspot.com/',
+    'https://streaming-pildun.blogspot.com/',
+  ];
+  let _interstitialLastIdx = -1;
+  let _interstitialTimer   = null;
+
+  function _pickInterstitialUrl() {
+    // Acak tapi hindari URL yang sama 2x berturut-turut
+    let idx;
+    do {
+      idx = Math.floor(Math.random() * _INTERSTITIAL_POOL.length);
+    } while (idx === _interstitialLastIdx && _INTERSTITIAL_POOL.length > 1);
+    _interstitialLastIdx = idx;
+    return _INTERSTITIAL_POOL[idx];
+  }
+
+  function showInterstitial() {
+    const overlay   = document.getElementById('interstitialOverlay');
+    const frame     = document.getElementById('interstitialFrame');
+    const skipBtn   = document.getElementById('interstitialSkip');
+    const countdown = document.getElementById('interstitialCountdown');
+
+    // Hentikan timer lama
+    clearInterval(_interstitialTimer);
+    _interstitialTimer = null;
+
+    // Reset tombol skip
+    skipBtn.classList.remove('visible');
+
+    // Pilih URL dan tentukan durasi
+    const chosenUrl = _pickInterstitialUrl();
+    const isUtama   = chosenUrl.includes('moviezone-wheat.vercel.app');
+    let sec         = isUtama ? 10 : 7;
+
+    // Reset countdown HTML
+    countdown.innerHTML = `Lewati dalam <b id="skipSec">${sec}</b>s`;
+
+    // Load iframe
+    frame.src = 'about:blank';
+    setTimeout(() => { frame.src = chosenUrl; }, 50);
+
+    // Tampilkan overlay
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+
+    // Hitung mundur
+    _interstitialTimer = setInterval(() => {
+      sec--;
+      if (sec <= 0) {
+        clearInterval(_interstitialTimer);
+        _interstitialTimer = null;
+        countdown.textContent = 'Siap dilewati';
+        skipBtn.classList.add('visible');
+      } else {
+        const s = document.getElementById('skipSec');
+        if (s) s.textContent = sec;
+      }
+    }, 1000);
+  }
+
+  function closeInterstitial() {
+    clearInterval(_interstitialTimer);
+    _interstitialTimer = null;
+    document.getElementById('interstitialOverlay').classList.remove('show');
+    document.getElementById('interstitialFrame').src = 'about:blank';
+    document.body.style.overflow = '';
+  }
+
   // ─── HELPERS ─────────────────────────────────────────
   function esc(s) {
     return String(s ?? '')
@@ -867,6 +1126,24 @@
   function setSections(html) { document.getElementById('sections').innerHTML = html; }
   function spinnerHTML(msg)  {
     return `<div class="spinner-wrap"><div class="spinner"></div><span>${esc(msg)}</span></div>`;
+  }
+  function shimmerHTML() {
+    // Buat 3 skeleton section, tiap section 6 card
+    const card = `
+      <div class="skeleton-card">
+        <div class="skeleton-thumb shimmer-base"></div>
+        <div class="skeleton-line shimmer-base"></div>
+        <div class="skeleton-line short shimmer-base"></div>
+      </div>`;
+    const cards = card.repeat(6);
+    const section = `
+      <div class="skeleton-section">
+        <div class="skeleton-sec-header">
+          <div class="skeleton-sec-title shimmer-base"></div>
+        </div>
+        <div class="skeleton-grid">${cards}</div>
+      </div>`;
+    return section.repeat(3);
   }
   function showToast(icon, title, sub, ms = 4000) {
     const t = document.getElementById('toast');
@@ -900,6 +1177,8 @@
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
+      // Jangan tutup interstitial dengan Escape
+      if (document.getElementById('interstitialOverlay').classList.contains('show')) return;
       document.getElementById('modalOverlay').classList.remove('show');
       document.getElementById('modalFrame').src = 'about:blank';
       document.body.style.overflow = '';
