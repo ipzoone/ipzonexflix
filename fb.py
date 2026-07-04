@@ -3,8 +3,84 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import re
+import time
 import concurrent.futures
+from collections import defaultdict
+from flask import Flask, send_from_directory, jsonify, request, abort
 app = Flask(__name__)
+
+# ══════════════════════════════════════════════════════════════
+#  SECURITY — sembunyikan info server
+# ══════════════════════════════════════════════════════════════
+app.config['PROPAGATE_EXCEPTIONS'] = False
+
+@app.after_request
+def set_security_headers(resp):
+    # Sembunyikan identitas server
+    resp.headers['Server'] = 'webserver'
+    resp.headers['X-Powered-By'] = ''
+    # Cegah clickjacking
+    resp.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    # Cegah MIME sniffing
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    # Cegah info referrer bocor
+    resp.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # XSS protection (legacy browser)
+    resp.headers['X-XSS-Protection'] = '1; mode=block'
+    # Content Security Policy — batasi sumber resource
+    resp.headers['Content-Security-Policy'] = (
+        "default-src 'self' https: data: blob:; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; "
+        "style-src 'self' 'unsafe-inline' https:; "
+        "img-src 'self' https: data: blob:; "
+        "frame-src https:; "
+        "connect-src 'self' https:; "
+        "media-src https: blob:;"
+    )
+    # Permissions policy — matikan fitur sensitif
+    resp.headers['Permissions-Policy'] = (
+        'geolocation=(), microphone=(), camera=(), '
+        'payment=(), usb=(), interest-cohort=()'
+    )
+    return resp
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({'error': 'not found'}), 404
+
+@app.errorhandler(429)
+def too_many(e):
+    return jsonify({'error': 'too many requests, slow down'}), 429
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Jangan bocorkan traceback ke user
+    return jsonify({'error': 'internal server error'}), 500
+
+# ══════════════════════════════════════════════════════════════
+#  RATE LIMITER — sederhana, in-memory per IP
+# ══════════════════════════════════════════════════════════════
+_RATE_STORE  = defaultdict(list)   # ip → [timestamp, ...]
+_RATE_LIMIT  = 20    # max request per window
+_RATE_WINDOW = 60    # detik
+
+def _get_ip():
+    # Ambil IP asli jika di balik proxy/Railway
+    return (
+        request.headers.get('X-Forwarded-For', '').split(',')[0].strip()
+        or request.remote_addr
+        or '0.0.0.0'
+    )
+
+def rate_limit_check():
+    ip  = _get_ip()
+    now = time.time()
+    # Bersihkan request lama di luar window
+    _RATE_STORE[ip] = [t for t in _RATE_STORE[ip] if now - t < _RATE_WINDOW]
+    if len(_RATE_STORE[ip]) >= _RATE_LIMIT:
+        abort(429)
+    _RATE_STORE[ip].append(now)
+
 
 HEADERS = {
     "User-Agent": (
@@ -778,9 +854,23 @@ def home():
 
 @app.route('/api/videos')
 def api_videos():
-    query   = request.args.get('q', 'doraemon sub indo')
+    # Rate limit per IP
+    rate_limit_check()
+
+    # Sanitasi query — strip, batasi panjang, buang karakter berbahaya
+    raw_q = request.args.get('q', 'doraemon sub indo')
+    query = re.sub(r'[<>{}\[\]\\;`\'"]', '', raw_q).strip()[:100]
+    if not query:
+        query = 'film'
+
+    # Sanitasi sources — hanya izinkan nilai yang ada di SCRAPERS
     src_raw = request.args.get('sources', ','.join(SCRAPERS.keys()))
-    sources = [s.strip() for s in src_raw.split(',') if s.strip() in SCRAPERS]
+    sources = [
+        s.strip() for s in src_raw.split(',')
+        if s.strip() in SCRAPERS
+    ][:len(SCRAPERS)]  # maks sebanyak jumlah scraper
+    if not sources:
+        sources = list(SCRAPERS.keys())
 
     all_results = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
