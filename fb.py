@@ -22,17 +22,22 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ══════════════════════════════════════════════════════════════
 #  HELPER
 # ══════════════════════════════════════════════════════════════
-def get(url, timeout=12, verify=True, **kwargs):
-    """GET dengan retry 1x"""
+def get(url, timeout=20, verify=False, **kwargs): # verify jadi False, timeout dinaikkan
+    """GET dengan retry dan bypass SSL"""
     try:
+        # Kita panggil dengan verify=False
         r = requests.get(url, headers=HEADERS, timeout=timeout, verify=verify, **kwargs)
         r.raise_for_status()
         return r
-    except Exception:
+    except Exception as e:
+        # Jika gagal, coba sekali lagi dengan timeout yang lebih besar
         try:
-            r = requests.get(url, headers=HEADERS, timeout=timeout+5, verify=verify, **kwargs)
+            r = requests.get(url, headers=HEADERS, timeout=30, verify=False, **kwargs)
             return r
         except Exception as e:
+            # Jika tetap gagal, print error-nya ke terminal supaya abang tahu alasannya
+            print(f"Gagal mengambil data dari: {url}")
+            print(f"Error detail: {e}")
             raise e
 
 
